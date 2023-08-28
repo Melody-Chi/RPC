@@ -1,0 +1,7 @@
+image: registry.comp30023/p2:latest
+test:
+  script:
+    - cp /framework/*.a .
+  artifacts:
+    paths:
+      - ./*.a

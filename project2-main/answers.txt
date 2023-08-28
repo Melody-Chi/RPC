@@ -1,0 +1,53 @@
+1. This depends on the specific requirements and security considerations of the system. Once the RPC system needs to restrict access to certain users or clients, it can just verify clients' identity before allowing them to make RPC calls.
+
+2.  It can be implemented at either the RPC framework level or within the functions that use the RPC framework. Because it depends on the security requirements as well as the level of control over the authentication process. Implementing authentication at the RPC framework level allows for centralized control and consistent enforcement across all functions while implementing it within the functions can be more flexible to customize authentication mechanisms.
+
+3. Choosing the transport layer protocol needs to consider the network environment, performance requirements, compatibility with existing systems, and so on. Our RPC systems should use TCP (Transmission Control Protocol) and UDP (User Datagram Protocol). TCP provides reliable and ordered delivery of data, while UDP offers lower overhead and faster communication but without guarantees of reliability or ordering. We should consider things like latency, bandwidth utilization, error recovery, and congestion control.
+
+4. The creation of sockets typically happens in the initialization phase of the server. In our code, the `rpc_init_server` function for the server side implements the socket creation and the `rpc_init_client` function for the client side.
+
+5. Both `rpc_client` and `rpc_server` can be allocated dynamically or statically. Dynamically allocating the structures using `malloc` allows for flexibility in memory management. Statically allocating the structures can simplify the code and reduce potential memory management issues, but it requires the maximum number of clients or servers. Considering the scalability and resource constraints of the system and I chose to allocate dynamically.
+
+6. It can lead to byte order mismatches if one host uses big-endian byte order and the other uses a little-endian when exchanging the data. I tried to use network byte order, which is for all data transmitted over the network standardized as big-endian. Using functions 'htonll' (host to network long . long) and 'ntohll' (network to host long. long) to exchange data between the host and the network , ensuring compatibility.
+
+
+Application Layer Protocol for the RPC System
+
+This application layer protocol is designed to handle the communication of our Remote Procedure Call (RPC) system. The protocol includes the processes for the RPC server and client to exchange data.
+
+1. Message connections: The protocol assumes there is a TCP/IP connection between the server and client, providing reliable, ordered, and error-checked byte stream transmission.
+
+2. Communication Request Types:
+
+    - 'N' : Close the connection. Client sent to the server to notify server to close the connection. 
+    - 'F' : Find a function. Find if a function with the specified name exists on the server side.
+    - 'C' : Call a function. Call a function on the server with provided parameters.
+
+3. Request Format:
+
+    - For type 'F': Starts with 'F', and followed by the name of the function to be found. The server responds with 'Y' shows function exists or 'N' if it does not.
+
+    - For type 'C': Starts with 'C', followed by the length of the function name, the function name, the length of the input data, and the actual input data. The server then responds with the function's return values, the length of the return data, and the actual return data.
+
+4. Data Format:
+
+    - The protocol uses the network byte order (big-endian) for numeric data. Functions `htonll` and `ntohll` are used to ensure correct conversion between host and network byte order . For string data, assumes ASCII encoding.
+
+5. Error Handling:
+
+    - If a requested function does not exist or cannot be executed for any reason, the server sends back a result `-1` as the data1 field and `NULL` as the data2 field. Then the client checks for these values after an RPC call to handle any potential errors.
+
+6. Multithreading:
+
+    - The server can handle multiple requests concurrently by spawning a new thread for each incoming connection. The threads will automatically clean up after themselves when they finish execution.
+
+
+Usage Example
+
+Assume that a client wants to call a function 'add' on the server:
+
+1. The client first sends a 'F' request and the function name 'add' to check if the function exists on the server.
+2. The server responds with 'Y', indicating the function exists.
+3. The client then sends a 'C' , including the function name 'add' and the input parameters.
+4. The server executes the 'add' function with the provided parameters and sends back the result.
+5. The client reads the result from the server.
