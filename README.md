@@ -17,20 +17,20 @@ The entire system will be encapsulated within two primary files, `rpc.c` and `rp
 
 The API makes use of a primary data structure named `rpc_data`. 
 
-
+```c
 typedef struct {
     int    data1;
     size_t data2_len;
     void   *data2;
 } rpc_data;
-
+```
 
 Additionally, there will be structs for the state of the client and server.
 
-
+```c
 typedef struct rpc_client rpc_client;
 typedef struct rpc_server rpc_server;
-
+```
 
 ### Server-side API
 
@@ -64,19 +64,19 @@ For more details, see `answers.txt`.
 To test, two executables named `rpc-server` and `rpc-client` will be used.
 
 To run:
-
+```bash
 ./rpc-server -p <port> &
 ./rpc-client -i <ip-address> -p <port>
-
+```
 
 ## Stretch Goal: Non-blocking Performance
 For enhanced performance, consider implementing a non-blocking version. This can be achieved through multi-threading, using `fork(2)`, or employing `select(2)`. 
 
 If this is implemented, include the following in your code:
 
-
+```c
 #define NONBLOCKING
-
+```
 
 ## Additional Considerations
 For the full list of considerations, including possible questions and challenges related to the design, refer to the file `answers.txt`.
